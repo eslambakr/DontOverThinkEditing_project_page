@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Don't Overthink</title>
+  <meta name="description" content="PRISM predicts how much reasoning each image edit needs, reasons through tailored lenses, and distills that reasoning into unambiguous actions that drive a single generation pass.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Don't Overthink: When Reasoning Backfires in Image Editing and How to Fix It">
+  <meta property="og:description" content="PRISM predicts how much reasoning each image edit needs, reasons through tailored lenses, and distills that reasoning into unambiguous actions that drive a single generation pass.">
+  <meta property="og:image" content="static/images/teaser.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+
+<!-- ============================== HERO ============================== -->
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <h1 class="title">Don't Overthink</h1>
+    <p class="subtitle">When Reasoning Backfires in Image Editing and How to Fix It</p>
+
+    <!-- TODO: replace with the author list and affiliations (and the BibTeX author field below). -->
+    <ul class="authors">
+      <li>Anonymous Authors</li>
+    </ul>
+    <ul class="affiliations">
+      <li>Paper under double-blind review</li>
+    </ul>
+
+    <!-- When a link is ready: set href, and remove class "is-pending" and the <span class="soon">. -->
+    <div class="links">
+      <a class="btn is-pending" href="#" aria-disabled="true" title="Coming soon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v6h6M9 13h8M9 17h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Paper <span class="soon">soon</span>
+      </a>
+      <a class="btn is-pending" href="#" aria-disabled="true" title="Coming soon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z" fill="currentColor"/></svg>
+        Code <span class="soon">soon</span>
+      </a>
+      <a class="btn is-pending" href="#" aria-disabled="true" title="Coming soon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 5.5v13c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-13M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        REVISE-50K <span class="soon">soon</span>
+      </a>
+      <a class="btn" href="#bibtex">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        BibTeX
+      </a>
+    </div>
+
+    <figure class="teaser">
+      <img class="zoomable" src="static/images/teaser.jpg" width="2400" height="1133"
+           alt="Two edits run through PRISM's four stages. Top: 'Create a crack in the milk bottle' is predicted Moderate, runs the Plausibility and Visual Coherence lenses, and yields three actions and a cracked bottle with spilled milk. Bottom: 'Replace the woman's cloth to white' is predicted Light, runs a single Reflection lens, and yields three actions and a white shirt that is also white in the mirror.">
+      <figcaption>
+        <strong>Reasoning should be adaptive and structured, not uniform.</strong>
+        <span class="ours">PRISM</span> predicts how much reasoning each edit needs before committing to it.
+        (Top)&nbsp;A crack in a milk bottle has physical consequences, so <span class="ours">PRISM</span> predicts
+        <em>Moderate</em> complexity and runs two tailored lenses, Plausibility and Visual Coherence, which infer the
+        spill and its reflections. (Bottom)&nbsp;A clothing recolor is direct, so a single <em>Light</em> Reflection
+        lens keeps the mirror image consistent. Each reasoning chain is distilled into three unambiguous actions that
+        drive a single generation pass.
+      </figcaption>
+    </figure>
+  </div>
+</header>
+
+<!-- ============================== LAYOUT ============================== -->
+<div class="layout">
+
+  <nav class="toc" id="toc" aria-label="Table of contents">
+    <div class="toc-inner">
+      <a class="toc-brand" href="#top">PRISM</a>
+      <ol>
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#demo">PRISM in Action</a></li>
+        <li><a href="#motivation">Motivation</a></li>
+        <li><a href="#diagnosis">Diagnosing Overthinking</a>
+          <ol>
+            <li><a href="#obs-1">Reasoning backfires</a></li>
+            <li><a href="#obs-2">Gated by adherence</a></li>
+            <li><a href="#obs-3">Verbosity is not reasoning</a></li>
+          </ol>
+        </li>
+        <li><a href="#method">Method</a>
+          <ol>
+            <li><a href="#method-complexity">Complexity steering</a></li>
+            <li><a href="#method-lenses">Tailored lenses</a></li>
+            <li><a href="#method-actions">Tailored actions</a></li>
+            <li><a href="#method-training">Training and rewards</a></li>
+          </ol>
+        </li>
+        <li><a href="#dataset">REVISE-50K</a></li>
+        <li><a href="#results">Results</a>
+          <ol>
+            <li><a href="#results-main">State of the art</a></li>
+            <li><a href="#results-lens">Lens specificity</a></li>
+            <li><a href="#results-ablation">Where the gain comes from</a></li>
+            <li><a href="#results-structure">Structure, not GRPO</a></li>
+            <li><a href="#results-complexity">Complexity and actions</a></li>
+          </ol>
+        </li>
+        <li><a href="#qualitative">Qualitative Results</a></li>
+        <li><a href="#bibtex">BibTeX</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============================== ABSTRACT ============================== -->
+    <section class="band" id="abstract">
+      <div class="wrap">
+        <h2>Abstract</h2>
+        <p class="abstract">
+          Reasoning-augmented image editing operates under a prevailing assumption: more deliberation yields better
+          edits. We show this assumption is fundamentally flawed. Through a diagnostic study of BAGEL, a
+          state-of-the-art unified multimodal model, we identify three root pathologies of SFT-based reasoning:
+          <em>complexity-agnostic outputs</em> that apply identical deliberation depth to trivial and complex edits
+          alike; <em>adherence dependency</em>, where correct reasoning fails to translate into generation gains
+          without sufficient adherence capacity in the generation expert; and <em>verbosity without substance</em>,
+          where tripling the reasoning budget yields no quality improvement (GPT-Score &asymp;&nbsp;5.2), while
+          structural directives at the same budget deliver a substantial gain to 6.1. These findings converge on a
+          single conclusion: neither adaptive reasoning length nor structured templates alone resolves overthinking,
+          both are <em>jointly necessary</em>. We introduce <span class="ours">PRISM</span> (Planning with Reasoning
+          via Instructed Structured Modes), a compound adaptive-and-structured reasoning framework that decomposes
+          pre-generation deliberation into three sequential stages, <em>complexity steering</em>, <em>tailored lens
+          generation</em>, and <em>ordered lens execution</em>, distilled into unambiguous per-sample actions that
+          drive a flow-matching generation expert. The understanding and generation experts are trained jointly via
+          GRPO and Flow-GRPO with variance-guided early-window selection, without any external verifier or
+          multi-turn inference. To power the framework, we introduce <span class="ours">REVISE-50K</span>, a dataset
+          of 50,000 samples spanning 50 editing skills with graded complexity labels and disentangled hardness and
+          verbosity axes. <span class="ours">PRISM</span> establishes a new state of the art on three
+          reasoning-intensive benchmarks, improving over BAGEL-Think by +13.0 points on KRIS, +3.4 on RISE and
+          +17.8 on PICA, while preserving performance on direct editing tasks and surpassing multi-round external
+          verifier systems at 20&times; lower inference cost.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================== DEMO ============================== -->
+    <section class="band" id="demo">
+      <div class="wrap">
+        <h2>PRISM in Action</h2>
+        <p class="lead">
+          Each example follows one instruction through <span class="ours">PRISM</span>'s four stages, from the
+          predicted complexity to the edit. The budget changes with the instruction: one lens for a direct recolor,
+          two for a crack with physical side effects, three for an impact whose outcome has to be predicted. The
+          first two examples are the ones in the figure above and the third is from PICABench; as in the paper's
+          figure, the text is abridged (&hellip;). Click a stage to jump to it.
+        </p>
+
+        <div class="demo" id="demo-walk" tabindex="0" role="region" aria-label="PRISM stage-by-stage examples">
+          <div class="demo-panel">
+            <div class="demo-bar">
+              <div class="demo-steps" role="group" aria-label="Jump to a stage">
+                <button type="button" data-go="1"><span class="n">1</span><span class="t">Complexity</span></button>
+                <button type="button" data-go="2"><span class="n">2</span><span class="t">Lenses</span></button>
+                <button type="button" data-go="3"><span class="n">3</span><span class="t">Lens execution</span></button>
+                <button type="button" data-go="4"><span class="n">4</span><span class="t">Actions</span></button>
+                <button type="button" data-go="5"><span class="n">&#10003;</span><span class="t">Edit</span></button>
+              </div>
+              <button class="demo-play" type="button" aria-pressed="true" aria-label="Pause the walkthrough">
+                <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>
+              </button>
+            </div>
+
+            <div class="demo-examples">
+              <!-- ---------- Light: Figure 1, bottom ---------- -->
+              <div class="demo-example active" id="ex-light" data-step="5" role="tabpanel" aria-labelledby="tab-light">
+                <div class="demo-media">
+                  <div class="media-card">
+                    <span class="media-label">Input</span>
+                    <img class="zoomable" src="static/images/demo/light_in.jpg" width="512" height="512" loading="lazy"
+                         alt="A woman in a rust-colored t-shirt raising her arms in front of a mirror.">
+                    <div class="instr">&ldquo;Replace the woman's cloth to white.&rdquo;</div>
+                  </div>
+                  <div class="media-card media-out">
+                    <span class="media-label">Edited by PRISM</span>
+                    <div class="frame">
+                      <img class="zoomable" src="static/images/demo/light_out.jpg" width="512" height="512" loading="lazy"
+                           alt="The same scene with her t-shirt changed to white, in the room and in the mirror.">
+                      <div class="veil" aria-hidden="true">Generated in one pass from the three actions</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-flow">
+                  <div class="ds" data-step="1">
+                    <div class="ds-head"><span class="ds-num">Stage 1</span><span class="ds-name">Complexity steering</span><span class="ds-note">budget: 1 lens, 3 actions</span></div>
+                    <div class="meter"><span class="pick light">Light</span><span>Moderate</span><span>Heavy</span></div>
+                  </div>
+                  <div class="ds" data-step="2">
+                    <div class="ds-head"><span class="ds-num">Stage 2</span><span class="ds-name">Tailored lenses</span></div>
+                    <div class="chips"><span>Reflection</span></div>
+                  </div>
+                  <div class="ds" data-step="3">
+                    <div class="ds-head"><span class="ds-num">Stage 3</span><span class="ds-name">Lens execution</span></div>
+                    <div class="traces">
+                      <p><b>Reflection:</b> Relight the white clothing so its shadows, highlights, and reflections are consistent with the mirror, &hellip;</p>
+                    </div>
+                  </div>
+                  <div class="ds" data-step="4">
+                    <div class="ds-head"><span class="ds-num">Stage 4</span><span class="ds-name">Tailored actions</span></div>
+                    <div class="actions">
+                      <p><b>Color Replacement:</b> Change the person's t-shirt to bright white while maintaining fabric texture&hellip;</p>
+                      <p><b>Texture Consistency:</b> Ensure the white clothing matches the original fabric, including wrinkles, &hellip;</p>
+                      <p><b>Shading and Reflections:</b> Update shadows, highlights, reflections on the white clothing to align &hellip;</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ---------- Moderate: Figure 1, top ---------- -->
+              <div class="demo-example" id="ex-moderate" data-step="5" role="tabpanel" aria-labelledby="tab-moderate">
+                <div class="demo-media">
+                  <div class="media-card">
+                    <span class="media-label">Input</span>
+                    <img class="zoomable" src="static/images/demo/moderate_in.jpg" width="512" height="512" loading="lazy"
+                         alt="A glass bottle of milk on a wooden tray beside a stack of cookies.">
+                    <div class="instr">&ldquo;Create a crack in the milk bottle.&rdquo;</div>
+                  </div>
+                  <div class="media-card media-out">
+                    <span class="media-label">Edited by PRISM</span>
+                    <div class="frame">
+                      <img class="zoomable" src="static/images/demo/moderate_out.jpg" width="512" height="512" loading="lazy"
+                           alt="The bottle now has a branching crack, and milk has pooled on the wood around it.">
+                      <div class="veil" aria-hidden="true">Generated in one pass from the three actions</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-flow">
+                  <div class="ds" data-step="1">
+                    <div class="ds-head"><span class="ds-num">Stage 1</span><span class="ds-name">Complexity steering</span><span class="ds-note">budget: 2 lenses, 3 actions</span></div>
+                    <div class="meter"><span>Light</span><span class="pick moderate">Moderate</span><span>Heavy</span></div>
+                  </div>
+                  <div class="ds" data-step="2">
+                    <div class="ds-head"><span class="ds-num">Stage 2</span><span class="ds-name">Tailored lenses</span></div>
+                    <div class="chips"><span>Plausibility</span><span>Visual Coherence</span></div>
+                  </div>
+                  <div class="ds" data-step="3">
+                    <div class="ds-head"><span class="ds-num">Stage 3</span><span class="ds-name">Lens execution</span></div>
+                    <div class="traces">
+                      <p><b>Plausibility:</b> A realistic crack appears on the milk bottle, &hellip; branching naturally; liquid spills slightly, &hellip; with light refraction visible.</p>
+                      <p><b>Visual Coherence:</b> The crack &hellip; aligns naturally with the bottle's curvature; &hellip;, matching the lighting and texture of the wood surface.</p>
+                    </div>
+                  </div>
+                  <div class="ds" data-step="4">
+                    <div class="ds-head"><span class="ds-num">Stage 4</span><span class="ds-name">Tailored actions</span></div>
+                    <div class="actions">
+                      <p><b>Crack Realism:</b> Introduce a realistic crack starting &hellip;, branching naturally along the curvature, &hellip;</p>
+                      <p><b>Visual Continuity:</b> Position the crack &hellip; reflects lighting and texture, and integrate shadows &hellip;</p>
+                      <p><b>Spill Physics:</b> Slightly spill milk from the crack, forming a realistic pool on the wood &hellip;</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ---------- Heavy: PICABench, full outputs ---------- -->
+              <div class="demo-example" id="ex-heavy" data-step="5" role="tabpanel" aria-labelledby="tab-heavy">
+                <div class="demo-media">
+                  <div class="media-card">
+                    <span class="media-label">Input</span>
+                    <img class="zoomable" src="static/images/demo/heavy_in.jpg" width="512" height="512" loading="lazy"
+                         alt="A wooden mallet raised above an egg in an egg cup.">
+                    <div class="instr">&ldquo;Move the hammer downward to hit the egg.&rdquo;</div>
+                  </div>
+                  <div class="media-card media-out">
+                    <span class="media-label">Edited by PRISM</span>
+                    <div class="frame">
+                      <img class="zoomable" src="static/images/demo/heavy_out.jpg" width="512" height="512" loading="lazy"
+                           alt="The hammer rests on the egg, whose shell has cracked open, with egg white and yolk spilled on the table.">
+                      <div class="veil" aria-hidden="true">Generated in one pass from the three actions</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-flow">
+                  <div class="ds" data-step="1">
+                    <div class="ds-head"><span class="ds-num">Stage 1</span><span class="ds-name">Complexity steering</span><span class="ds-note">budget: 3 lenses, 3 actions</span></div>
+                    <div class="meter"><span>Light</span><span>Moderate</span><span class="pick heavy">Heavy</span></div>
+                  </div>
+                  <div class="ds" data-step="2">
+                    <div class="ds-head"><span class="ds-num">Stage 2</span><span class="ds-name">Tailored lenses</span></div>
+                    <div class="chips"><span>Causality</span><span>Plausibility</span><span>Dynamic Realism</span></div>
+                  </div>
+                  <div class="ds" data-step="3">
+                    <div class="ds-head"><span class="ds-num">Stage 3</span><span class="ds-name">Lens execution</span></div>
+                    <div class="traces">
+                      <p><b>Causality:</b> The hammer's motion causes a direct impact on the egg, creating a visible crack with shell fragments &hellip;; egg yolk spills slightly.</p>
+                      <p><b>Plausibility:</b> The egg cracks realistically with a jagged fracture; yolk and white spill naturally; &hellip;</p>
+                      <p><b>Dynamic Realism:</b> The hammer's head makes contact with the egg, &hellip; shadowing and lighting match motion direction and physical impact; &hellip;</p>
+                    </div>
+                  </div>
+                  <div class="ds" data-step="4">
+                    <div class="ds-head"><span class="ds-num">Stage 4</span><span class="ds-name">Tailored actions</span></div>
+                    <div class="actions">
+                      <p><b>Hammer Impact:</b> Position the hammer head to make contact with the egg, creating a realistic crack with jagged shell fragments; &hellip;</p>
+                      <p><b>Physical Consequence:</b> Simulate the hammer striking the egg, resulting in a realistic crack; show egg white spilling outward, &hellip;</p>
+                      <p><b>Realism Preservation:</b> Capture hammer contact with egg, including crack detail, spilled egg contents, and shadow; &hellip;</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo-tabs" role="tablist" aria-label="Choose an example">
+            <button type="button" role="tab" id="tab-light" aria-controls="ex-light" aria-selected="true"><span class="lvl-dot light"></span>Light &middot; recolor the clothes</button>
+            <button type="button" role="tab" id="tab-moderate" aria-controls="ex-moderate" aria-selected="false"><span class="lvl-dot moderate"></span>Moderate &middot; crack the milk bottle</button>
+            <button type="button" role="tab" id="tab-heavy" aria-controls="ex-heavy" aria-selected="false"><span class="lvl-dot heavy"></span>Heavy &middot; hammer meets egg</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== MOTIVATION ============================== -->
+    <section class="band" id="motivation">
+      <div class="wrap">
+        <h2>Motivation</h2>
+        <p>
+          Chain-of-thought prompting and large-scale reinforcement learning have made slow, deliberate thinking a
+          first-class component of vision-language models, and unified multimodal models such as BAGEL have carried
+          it to image editing, where emitting a reasoning trace before generating improves instruction following. The
+          prevailing assumption is clear: the more the model deliberates, the better the edit.
+        </p>
+        <blockquote class="hypothesis">
+          Reasoning should be adaptive and structured, not uniform.
+        </blockquote>
+        <p>
+          We find that reasoning can actively hurt editing quality. On a direct instruction, deliberating over an
+          obvious edit wastes capacity and introduces noise; on a reasoning-intensive one, the same mechanism is
+          indispensable. A model therefore has to decide, per edit, whether to reason, about what, and how deeply.
+        </p>
+
+        <div class="cards three">
+          <div class="card">
+            <div class="card-kicker">The assumption</div>
+            <h3>More deliberation, better edits</h3>
+            <p>Reasoning-augmented editors emit the same kind of chain-of-thought before every edit, whether the
+              instruction is a recolor or a physical chain reaction.</p>
+          </div>
+          <div class="card">
+            <div class="card-kicker">The symptom</div>
+            <h3>Reasoning hurts direct edits</h3>
+            <p>Turning on BAGEL's thinking mode lowers GEdit from 5.35 to 5.06 on direct, self-contained
+              instructions, while it raises KRIS from 56.21 to 60.18 on reasoning-intensive ones.</p>
+          </div>
+          <div class="card">
+            <div class="card-kicker">The question</div>
+            <h3>How much to think, and how?</h3>
+            <p>Can one model decide per edit how deeply to reason, and structure that reasoning so that it turns
+              into a better edit rather than a longer one?</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== DIAGNOSIS ============================== -->
+    <section class="band" id="diagnosis">
+      <div class="wrap">
+        <h2>Diagnosing Overthinking</h2>
+        <p>
+          A diagnostic study of BAGEL's SFT-based reasoning on a reasoning-intensive benchmark (KRIS) and a direct
+          editing benchmark (GEdit) identifies three distinct pathologies.
+        </p>
+
+        <figure class="wide">
+          <img class="zoomable" src="static/images/cfg_thinking.png" width="1800" height="784" loading="lazy"
+               alt="Bar charts of KRIS and GEdit scores for the four combinations of thinking on or off and classifier-free guidance on or off. KRIS: 48.5 with neither, 55.0 with CFG only, 42.9 with thinking only, 60.0 with both. GEdit: 5.35, 6.18, 5.06 and 5.47.">
+          <figcaption>
+            <strong>Reasoning quality is gated by generation adherence.</strong> Thinking &times; classifier-free
+            guidance (CFG) on KRIS (a) and GEdit (b). Thinking without CFG lowers KRIS from 55.0 to 42.9; only with
+            CFG does thinking reach the best KRIS score, 60.0.
+          </figcaption>
+        </figure>
+
+        <div class="findings">
+          <div class="finding" id="obs-1">
+            <div class="finding-tag">Observation 1</div>
+            <h3>Reasoning backfires on direct edits</h3>
+            <span class="stat">5.35 &rarr; 5.06 <small>GEdit, thinking on</small></span>
+            <p>Thinking improves KRIS (56.21 &rarr; 60.18) but hurts GEdit. The culprit is not reasoning itself but
+              <em>complexity-agnostic</em> reasoning: BAGEL generates the same elaborate chain-of-thought for a
+              trivial color change as for a complex multi-object manipulation.</p>
+          </div>
+          <div class="finding" id="obs-2">
+            <div class="finding-tag">Observation 2</div>
+            <h3>Reasoning is gated by adherence</h3>
+            <span class="stat">55.0 &rarr; 42.9 <small>KRIS, thinking without CFG</small></span>
+            <p>Even semantically correct reasoning degrades the edit when the generation expert cannot follow it,
+              and only with CFG does thinking recover to 60.0. A model that cannot execute its own plan cannot
+              benefit from planning, so <span class="ours">PRISM</span> also trains the generation expert.</p>
+          </div>
+          <div class="finding" id="obs-3">
+            <div class="finding-tag">Observation 3</div>
+            <h3>Verbosity is not reasoning</h3>
+            <span class="stat">&asymp;&nbsp;5.2 <small>GPT-Score at any length</small></span>
+            <p>LoRA variants trained to reason at three fixed budgets score the same despite a 3&times; length
+              difference. A structural directive at the Heavy budget, resolving ambiguities before reasoning, lifts
+              quality to 6.10 at a similar length.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap narrow">
+          <p class="table-cap" id="tcap-1">Reasoning quality on KRIS, judged by GPT-5.2, for reasoning budgets of 10&ndash;15 (Light),
+              20&ndash;30 (Moderate) and 40&ndash;60 (Heavy) words. Structure, not length, drives quality.</p>
+          <div class="table-scroll">
+          <table class="results" aria-describedby="tcap-1">
+            <thead><tr><th class="left">Variant</th><th>Avg. words</th><th>GPT-Score</th></tr></thead>
+            <tbody>
+              <tr><td class="left">Light</td><td>21</td><td>5.24</td></tr>
+              <tr><td class="left">Moderate</td><td>33</td><td>5.12</td></tr>
+              <tr><td class="left">Heavy</td><td>59</td><td>5.26</td></tr>
+              <tr class="ours-row"><td class="left">Heavy + structure</td><td>66</td><td><b>6.10</b></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <div class="callouts">
+          <p><strong>Adaptivity alone is not enough.</strong> Adaptive length without structure degenerates into
+            verbosity (Observation&nbsp;3).</p>
+          <p><strong>Structure alone is not enough.</strong> Rigid structure without adaptivity fails to discriminate
+            task complexity (Observation&nbsp;1). The two are orthogonal but jointly necessary.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== METHOD ============================== -->
+    <section class="band" id="method">
+      <div class="wrap">
+        <h2>Method</h2>
+        <p>
+          <span class="ours">PRISM</span> (Planning with Reasoning via Instructed Structured Modes) is built on BAGEL,
+          a decoder-only unified model (7B active, 14B total parameters) whose separate understanding and generation
+          experts share self-attention at every layer. Its design principle is <em>structure-aware yet adaptive
+          generation</em>: scaffolding that guides reasoning without fixing it to a rigid template. Given an input
+          image <span class="math">\(I\)</span> and instruction <span class="math">\(x\)</span>,
+          <span class="ours">PRISM</span> calls the unified model <span class="math">\(\mathcal{M}\)</span> through
+          four stages, and the actions of the last stage drive the flow-matching generation expert.
+        </p>
+        <figure class="wide">
+          <img class="zoomable" src="static/images/method.jpg" width="2400" height="1395"
+               alt="PRISM overview: the understanding expert steers complexity, proposes and executes tailored lenses, and generates tailored actions; the generation expert produces the edited image. Each stage has its own reward: budget fit, lens value, grounding and executability for GRPO, and a denoising-trajectory reward for Flow-GRPO.">
+          <figcaption>
+            <strong>Overview of <span class="ours">PRISM</span>.</strong> The understanding expert steers complexity,
+            proposes and executes tailored lenses, and distills actions for one-shot editing, trained with GRPO and
+            Flow-GRPO.
+          </figcaption>
+        </figure>
+
+        <div class="stages">
+          <div class="stage">
+            <div class="stage-num">Stage 1</div>
+            <h3>Complexity steering</h3>
+            <p>Predict light, moderate or heavy from the input, which sets how many lenses to run.</p>
+          </div>
+          <div class="stage">
+            <div class="stage-num">Stage 2</div>
+            <h3>Tailored lenses</h3>
+            <p>Propose the perspectives this edit must be examined from, free to go beyond a seed vocabulary.</p>
+          </div>
+          <div class="stage">
+            <div class="stage-num">Stage 3</div>
+            <h3>Ordered execution</h3>
+            <p>Run the lenses in order, each conditioned on the traces before it, so later lenses refine rather than
+              repeat.</p>
+          </div>
+          <div class="stage">
+            <div class="stage-num">Stage 4</div>
+            <h3>Tailored actions</h3>
+            <p>Distill the traces into three titled, unambiguous actions that the generation expert executes in one
+              pass.</p>
+          </div>
+        </div>
+
+        <h3 class="sub" id="method-complexity">Adaptive complexity steering</h3>
+        <p>
+          Before reasoning, the model predicts a discrete complexity level directly from the input:
+        </p>
+        <div class="eq">\[
+          \hat{c} = \mathcal{M}(x, I; \rho_{\mathrm{cpx}}) \in \{\texttt{light}, \texttt{moderate}, \texttt{heavy}\}.
+        \]</div>
+        <p>
+          A deterministic budget function maps <span class="math">\(\hat{c}\)</span> to the number of lenses, with
+          three actions at every level, routing simple instructions to single-lens paths and complex ones to deeper
+          multi-lens chains.
+        </p>
+        <div class="budget">
+          <div class="budget-item"><div class="pips l1"><i></i><i></i><i></i></div><div><div class="lvl">Light</div><div class="what">1 lens &middot; 3 actions</div></div></div>
+          <div class="budget-item"><div class="pips l2"><i></i><i></i><i></i></div><div><div class="lvl">Moderate</div><div class="what">2 lenses &middot; 3 actions</div></div></div>
+          <div class="budget-item"><div class="pips l3"><i></i><i></i><i></i></div><div><div class="lvl">Heavy</div><div class="what">3 lenses &middot; 3 actions</div></div></div>
+        </div>
+
+        <h3 class="sub" id="method-lenses">Tailored lenses, executed in order</h3>
+        <p>
+          A <em>lens</em> is a reasoning perspective the edit must be examined from. The prompt is seeded with an
+          initial vocabulary <span class="math">\(\mathcal{L}\)</span> of nine lenses, each derived from a failure mode
+          of the BAGEL baseline:
+        </p>
+        <div class="lens-pool">
+          <span>Disambiguation</span><span>Plausibility</span><span>Photorealism</span><span>Decomposition</span><span>Grounding</span><span>FailureMode</span><span>Consistency</span><span>Causality</span><span>Temporal</span>
+        </div>
+        <p>
+          The vocabulary only guides the model. It generates <span class="math">\(l\)</span> tailored lenses for each
+          input, each a free-form name and purpose, and is free to name its own; across the evaluation benchmarks,
+          86% of the generated lenses are not in <span class="math">\(\mathcal{L}\)</span>. The lenses are then
+          executed in order, each conditioned on all preceding traces:
+        </p>
+        <div class="eq">\[
+          \hat{L} = \bigl(\hat{l}_1, \dots, \hat{l}_l\bigr) = \mathcal{M}\bigl(x, I, \mathcal{L}; \rho_{\mathrm{lens}}\bigr),
+          \qquad
+          \tau_k = \mathcal{M}\bigl(x, I, \hat{L}_{1:k}, \tau_{&lt;k}; \rho_{\hat{l}_k}\bigr), \quad k = 1, \dots, l.
+        \]</div>
+        <figure class="wide medium">
+          <img class="zoomable" src="static/images/failure_taxonomy.png" width="1600" height="1028" loading="lazy"
+               alt="Share of BAGEL failures per cluster and the lens it maps to: instruction ambiguity 18% (Disambiguation), implausible result 16% (Plausibility), texture or photo artifact 14% (Photorealism), missed sub-operation 10% (Decomposition), wrong object selected 9% (Grounding), model failure pattern 8% (FailureMode), style inconsistency 5% (Consistency), causal error 3% (Causality), temporal error 2% (Temporal).">
+          <figcaption>
+            <strong>Where the seed lenses come from.</strong> Failure modes of the BAGEL baseline on low-scoring
+            outputs from a random 1K sample of <span class="ours">REVISE-50K</span>; each cluster maps to one lens in
+            <span class="math">\(\mathcal{L}\)</span>.
+          </figcaption>
+        </figure>
+
+        <h3 class="sub" id="method-actions">Tailored actions, one generation pass</h3>
+        <p>
+          The reasoning traces are distilled into <span class="math">\(n\)</span> tailored, executable actions in a
+          single forward pass:
+        </p>
+        <div class="eq">\[
+          \mathbf{A} = \bigl((t_1, d_1), \dots, (t_n, d_n)\bigr) = \mathcal{M}\bigl(x, I, \{\tau_k\}_{k=1}^{l}; \rho_{\mathrm{act}}\bigr).
+        \]</div>
+        <ul class="points">
+          <li><strong>Tailored titles.</strong> Each action pairs an aspect title <span class="math">\(t_j\)</span>
+            that the model names itself, such as <code class="tok">Subject Placement</code>, with an unambiguous
+            directive <span class="math">\(d_j\)</span>. Compared with fixed roles such as <em>high-level edit</em>
+            and <em>identity preservation</em>, this is the most learnable action format.</li>
+          <li><strong>One shot.</strong> The generation expert executes all <span class="math">\(n\)</span> actions
+            together to produce the edited image <span class="math">\(\hat{I}\)</span>, with no multi-turn inference
+            and no external verifier.</li>
+        </ul>
+
+        <h3 class="sub" id="method-training">Training and rewards</h3>
+        <p>
+          GRPO amplifies what the base model already does, but BAGEL predicts edit complexity poorly. Stage&nbsp;1 is
+          therefore warm-started with SFT on offline complexity labels from InternVL3.5-241B-A28B, and then all four
+          stages are trained with GRPO, each with its own reward. The generation expert is trained with Flow-GRPO.
+        </p>
+        <div class="rewards">
+          <div class="reward"><b>R<sub>1</sub> &middot; Budget fit</b><span>Scores the predicted complexity against the teacher's label, penalizing overthinking.</span></div>
+          <div class="reward"><b>R<sub>2</sub> &middot; Lens value</b><span>Rewards lenses that are relevant and non-redundant.</span></div>
+          <div class="reward"><b>R<sub>3</sub> &middot; Grounding</b><span>Rewards lens traces whose claims hold in the image.</span></div>
+          <div class="reward"><b>R<sub>4</sub> &middot; Executability</b><span>Rewards actions that are concrete and directly executable.</span></div>
+          <div class="reward gen"><b>Flow-GRPO</b><span>EditReward scores the edit against each action.</span></div>
+        </div>
+        <p>
+          R<sub>2</sub> to R<sub>4</sub> are scored by InternVL3.5-241B-A28B with stage-specific rubric prompts. For
+          the image, scoring a vague instruction against the edit yields an unreliable signal, so EditReward, an
+          open-weight reward model trained on human edit preferences, scores the edit against each explicit action and
+          the scores are averaged:
+        </p>
+        <div class="eq">\[
+          r_{\mathrm{img}} = \frac{1}{n} \sum_{j=1}^{n} \mathcal{R}_{\mathrm{img}}\bigl(I, \hat{I}, a_j\bigr).
+        \]</div>
+        <p>All reward models are open-weight, so training relies on no proprietary system.</p>
+
+        <div class="split">
+          <figure class="wide">
+            <img class="zoomable" src="static/images/variance_windows.png" width="1600" height="947" loading="lazy"
+                 alt="Reward standard deviation per five-step denoising window: 0.27 for steps 24 to 20, 0.09 for 19 to 15, 0.05 for 14 to 10, 0.03 for 9 to 5 and 0.02 for 4 to 0. The first two windows are selected.">
+            <figcaption>Reward standard deviation when SDE noise is injected in only one denoising window
+              (<span class="math">\(G{=}8\)</span>, 200 samples, five runs).</figcaption>
+          </figure>
+          <div>
+            <h3>Variance-guided early-window selection</h3>
+            <p class="lead">
+              Flow-GRPO converts the deterministic sampling ODE into an SDE to get diverse samples for
+              group-relative advantages. Reward variance is concentrated in the early, high-noise steps, where global
+              structure is decided, and is an order of magnitude smaller at the end. <span class="ours">PRISM</span>
+              injects noise only in steps 24&ndash;17 and keeps the rest deterministic, which converges faster and
+              higher than full-trajectory Flow-GRPO or the sliding window of MixGRPO.
+            </p>
+          </div>
+        </div>
+        <p class="note">Training uses LoRA (rank 128) for one epoch with learning rate 1&times;10<sup>&minus;5</sup>,
+          one sample per GPU and a group size of 8, on 4 nodes of 8 A100 GPUs, at 512&times;512 with 25 denoising
+          steps.</p>
+      </div>
+    </section>
+
+    <!-- ============================== DATASET ============================== -->
+    <section class="band" id="dataset">
+      <div class="wrap">
+        <h2>REVISE-50K</h2>
+        <p>
+          Existing editing datasets cover narrow task families, give no signal about how much reasoning an edit
+          needs, and treat all instructions as equally demanding: the conditions that produce overthinking.
+          <span class="ours">REVISE-50K</span> is built for GRPO training of reasoning-adaptive editing models.
+        </p>
+        <div class="stats">
+          <div class="stat-tile"><b>50,000</b><span>multimodal samples</span></div>
+          <div class="stat-tile"><b>50</b><span>editing skills in 10 categories</span></div>
+          <div class="stat-tile"><b>74</b><span>source datasets</span></div>
+          <div class="stat-tile"><b>4</b><span>complexity levels, none to heavy</span></div>
+        </div>
+        <figure class="wide">
+          <img class="zoomable" src="static/images/revise_overview.jpg" width="2400" height="1022" loading="lazy"
+               alt="REVISE-50K overview. Left: a sunburst of 10 categories and 50 skills. Right: the pipeline from about 100K images from 74 datasets, through quality filters (8.1% removed), safety screening (2.2%) and semantic relevance (3.8%), to instruction generation and annotation by InternVL3.5-241B with independent hardness and verbosity axes, giving 50,000 samples, 93% single-image and 7% multi-image.">
+          <figcaption>
+            <strong>Left:</strong> two-level taxonomy, 10 high-level categories and 50 fine-grained skills, balanced at
+            both levels. <strong>Right:</strong> about 100K collected images pass a three-stage filtration (about 14%
+            discarded) before InternVL3.5-241B generates the instructions and annotations.
+          </figcaption>
+        </figure>
+        <div class="cards three">
+          <div class="card">
+            <div class="card-kicker">Breadth</div>
+            <h3>50 skills from 74 sources</h3>
+            <p>Natural photographs (e.g. COCO, FFHQ), domain collections (e.g. WikiArt, DeepFashion) and procedurally
+              generated stimuli such as dice nets, matchstick puzzles and mazes.</p>
+          </div>
+          <div class="card">
+            <div class="card-kicker">Disentangled design</div>
+            <h3>Hardness and verbosity are independent</h3>
+            <p>The model cannot use instruction length as a proxy for difficulty. Instructions that ship with a
+              source dataset are discarded and regenerated, for a consistent style and difficulty.</p>
+          </div>
+          <div class="card">
+            <div class="card-kicker">Graded annotations</div>
+            <h3>A complexity label on every sample</h3>
+            <p>Each sample carries a complexity label and a reasoning trace, which drive the complexity reward
+              during GRPO training.</p>
+          </div>
+        </div>
+        <div class="gallery" style="margin-top: 26px;">
+          <figure class="pop">
+            <img class="zoomable" src="static/images/revise_samples_1.jpg" width="1400" height="2023" loading="lazy"
+                 alt="Fifteen REVISE-50K samples with concise instructions, tagged heavy, moderate or light.">
+            <figcaption>Concise instructions, from heavy to light complexity.</figcaption>
+          </figure>
+          <figure class="pop">
+            <img class="zoomable" src="static/images/revise_samples_2.jpg" width="1400" height="2023" loading="lazy"
+                 alt="Ten REVISE-50K samples with detailed instructions, tagged moderate or light.">
+            <figcaption>Detailed instructions, at moderate and light complexity.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== RESULTS ============================== -->
+    <section class="band" id="results">
+      <div class="wrap">
+        <h2>Results</h2>
+
+        <h3 class="sub" id="results-main">Comparison with the state of the art</h3>
+        <p>
+          We evaluate on reasoning-intensive benchmarks (KRIS, RISE, PICABench), which require multi-step or physical
+          reasoning, and on standard editing benchmarks (GEdit, ImgEdit) with direct, unambiguous instructions. The
+          second group tests whether a reasoning model avoids overthinking simple edits. The fairest comparison is
+          against our own backbone, BAGEL, which isolates the contribution of the framework.
+        </p>
+        <div class="table-wrap">
+          <p class="table-cap" id="tcap-2">Comparison with state-of-the-art editing methods. Green numbers are gains over BAGEL-Think; bold
+              marks the best value in each column. <sup>*</sup>&nbsp;GEdit under our robust evaluation protocol (see
+              the paper's appendix).</p>
+          <div class="table-scroll">
+          <table class="results" aria-describedby="tcap-2">
+            <thead>
+              <tr>
+                <th rowspan="2" class="left">Method</th>
+                <th colspan="2" class="group">Non-reasoning</th>
+                <th colspan="3" class="group">Reasoning-intensive</th>
+              </tr>
+              <tr><th>GEdit<sup>*</sup></th><th>ImgEdit</th><th>KRIS</th><th>RISE</th><th>PICABench-Superficial</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="left">OmniGen2</td><td>5.58</td><td>3.41</td><td>50.52</td><td>3.1</td><td>46.79</td></tr>
+              <tr><td class="left">FLUX.1 Kontext</td><td>5.64</td><td>3.44</td><td>61.81</td><td>5.8</td><td>48.93</td></tr>
+              <tr><td class="left">Qwen-Image-Edit</td><td><b>7.23</b></td><td>4.36</td><td>64.43</td><td>8.9</td><td>61.26</td></tr>
+              <tr><td class="left">ReasonEdit</td><td>6.86</td><td>4.36</td><td>61.57</td><td>3.1</td><td>48.23</td></tr>
+              <tr><td class="left">ChronoEdit</td><td>7.12</td><td><b>4.42</b></td><td>70.96</td><td>1.5</td><td>58.67</td></tr>
+            </tbody>
+            <tbody>
+              <tr><td class="left">BAGEL</td><td>5.35</td><td>3.2</td><td>56.21</td><td>6.1</td><td>45.07</td></tr>
+              <tr><td class="left">BAGEL-Think</td><td>5.06</td><td>3.0</td><td>60.18</td><td>11.9</td><td>46.48</td></tr>
+              <tr class="ours-row"><td class="left">PRISM (ours)</td>
+                <td>7.00<span class="gain">+1.9</span></td>
+                <td>4.00<span class="gain">+1.0</span></td>
+                <td><b>73.2</b><span class="gain">+13.0</span></td>
+                <td><b>15.27</b><span class="gain">+3.4</span></td>
+                <td><b>64.32</b><span class="gain">+17.8</span></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+        <div class="callouts">
+          <p><strong>State of the art on all three reasoning benchmarks.</strong> <span class="ours">PRISM</span>
+            reaches 73.2 on KRIS, 15.27 on RISE and 64.32 on PICABench, ahead of systems that use larger models, higher
+            resolutions and more training data, such as Qwen-Image-Edit. It also surpasses EditThinker, which runs an
+            external 8B verifier for up to 8 rounds, in a single pass at 20&times; lower inference cost.</p>
+          <p><strong>No overthinking penalty on direct edits.</strong> BAGEL-Think scores below BAGEL on GEdit
+            (5.06 vs 5.35) and ImgEdit (3.0 vs 3.2). By routing simple instructions to low-depth reasoning paths,
+            <span class="ours">PRISM</span> raises them to 7.00 and 4.00 instead.</p>
+        </div>
+
+        <h3 class="sub" id="results-lens">Each subset needs its own lens</h3>
+        <p>
+          On three aspect-stratified evaluation subsets, lenses are added one at a time. Performance improves as lenses
+          are introduced, and each subset gains most when the lens targeting its focal aspect is added, for example
+          the Disambiguation lens on the disambiguation subset and the Grounding lens on grounding. Beyond that,
+          further lenses give diminishing returns or slightly hurt, because irrelevant reasoning adds noise to the
+          actions. Since the useful lenses differ per instruction, the model has to choose them per sample; letting
+          it do so gives the best overall score.
+        </p>
+        <div class="table-wrap">
+          <p class="table-cap" id="tcap-3">Lens specificity. Each row adds one lens: <span class="ltag dis">Dis</span> Disambiguation,
+              <span class="ltag gnd">Gnd</span> Grounding, <span class="ltag pla">Pla</span> Plausibility,
+              <span class="ltag act">Act</span> Action. The last row lets <span class="ours">PRISM</span> choose its
+              lenses per sample.</p>
+          <div class="table-scroll">
+          <table class="results" aria-describedby="tcap-3">
+            <thead>
+              <tr>
+                <th rowspan="2" class="left">Lenses</th>
+                <th colspan="3" class="group">Disambiguation (KRIS)</th>
+                <th rowspan="2">Grounding</th>
+                <th rowspan="2">Plausibility</th>
+              </tr>
+              <tr><th>Rule-based reasoning</th><th>Part completion</th><th>Overall</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="left"><span class="ltag act">Act</span> (zero-shot)</td><td>5.80</td><td>6.10</td><td>6.40</td><td>5.70</td><td>5.31</td></tr>
+              <tr><td class="left"><span class="ltag act">Act</span></td><td>7.25</td><td>7.50</td><td>7.99</td><td>6.40</td><td>7.10</td></tr>
+              <tr><td class="left"><span class="ltag dis">Dis</span><span class="ltag act">Act</span></td><td>7.80</td><td>8.60</td><td>8.43</td><td>6.50</td><td>6.50</td></tr>
+              <tr><td class="left"><span class="ltag dis">Dis</span><span class="ltag gnd">Gnd</span><span class="ltag act">Act</span></td><td>7.67</td><td>8.60</td><td>8.38</td><td><b>6.90</b></td><td>7.00</td></tr>
+              <tr><td class="left"><span class="ltag dis">Dis</span><span class="ltag gnd">Gnd</span><span class="ltag pla">Pla</span><span class="ltag act">Act</span></td><td>7.73</td><td><b>9.02</b></td><td>8.61</td><td>6.50</td><td>7.50</td></tr>
+            </tbody>
+            <tbody>
+              <tr class="ours-row"><td class="left">Adaptive lenses (PRISM)</td><td><b>8.12</b></td><td>8.92</td><td><b>8.72</b></td><td>6.73</td><td><b>7.82</b></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+        <figure class="wide">
+          <img class="zoomable" src="static/images/grounding_plausibility.jpg" width="1800" height="1012" loading="lazy"
+               alt="Five grounding-subset instructions, such as removing the price tag on the only item currently for sale, and five plausibility-subset instructions, such as adding water droplets consistent with just exiting the pool.">
+          <figcaption><strong>Samples from the Grounding and Plausibility subsets.</strong> Grounding instructions
+            name the target indirectly; plausibility instructions require physically consistent consequences.</figcaption>
+        </figure>
+
+        <h3 class="sub" id="results-ablation">Where the gain comes from</h3>
+        <p>
+          Starting from BAGEL, we add one component at a time under identical training settings. Rows two and three
+          train on OmniEdit; the last row replaces it with <span class="ours">REVISE-50K</span>.
+        </p>
+        <div class="gain-chart" id="gain-chart" role="img"
+             aria-label="Bar charts of KRIS and GEdit as each component is added. KRIS: BAGEL 56.2, plus Flow-GRPO 60.1, plus adaptive and structured reasoning 66.8, trained on REVISE-50K 73.2. GEdit: 5.35, 6.94, 7.08, 7.00.">
+          <div>
+            <p class="gc-title">KRIS <span>&middot; reasoning-intensive</span></p>
+            <div class="gc-rows">
+              <div class="gc-row" style="--w: 56.2%"><span class="gc-label">BAGEL</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">56.2</span></div></div>
+              <div class="gc-row" style="--w: 60.1%"><span class="gc-label">+ Flow-GRPO</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">60.1</span><span class="gc-delta up">+3.9</span></div></div>
+              <div class="gc-row" style="--w: 66.8%"><span class="gc-label">+ Adaptive &amp; structured</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">66.8</span><span class="gc-delta up">+6.7</span></div></div>
+              <div class="gc-row ours" style="--w: 73.2%"><span class="gc-label">+ REVISE-50K (PRISM)</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">73.2</span><span class="gc-delta up">+6.4</span></div></div>
+            </div>
+            <div class="gc-axis" aria-hidden="true"><span></span><div><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div></div>
+          </div>
+          <div>
+            <p class="gc-title">GEdit <span>&middot; direct editing</span></p>
+            <div class="gc-rows">
+              <div class="gc-row" style="--w: 53.5%"><span class="gc-label">BAGEL</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">5.35</span></div></div>
+              <div class="gc-row" style="--w: 69.4%"><span class="gc-label">+ Flow-GRPO</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">6.94</span><span class="gc-delta up">+1.59</span></div></div>
+              <div class="gc-row" style="--w: 70.8%"><span class="gc-label">+ Adaptive &amp; structured</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">7.08</span><span class="gc-delta up">+0.14</span></div></div>
+              <div class="gc-row ours" style="--w: 70%"><span class="gc-label">+ REVISE-50K (PRISM)</span><div class="gc-track"><div class="gc-bar"></div><span class="gc-val">7.00</span><span class="gc-delta">&minus;0.08</span></div></div>
+            </div>
+            <div class="gc-axis" aria-hidden="true"><span></span><div><span>0</span><span>2.5</span><span>5</span><span>7.5</span><span>10</span></div></div>
+          </div>
+        </div>
+        <ul class="points" style="margin-top: 18px;">
+          <li><strong>Flow-GRPO</strong> on the generation expert gives the largest jump on direct editing (GEdit
+            5.35 &rarr; 6.94) but only a moderate one on KRIS, addressing the adherence bottleneck of
+            Observation&nbsp;2.</li>
+          <li><strong>Adaptive and structured reasoning</strong>, still trained on OmniEdit, lifts KRIS by a further
+            6.7 points while keeping GEdit stable.</li>
+          <li><strong><span class="ours">REVISE-50K</span></strong> in place of OmniEdit adds another 6.4 on KRIS,
+            with GEdit unchanged within judge noise, so the dataset is a distinct driver rather than a proxy for the
+            method.</li>
+        </ul>
+
+        <h3 class="sub" id="results-structure">Structure, not GRPO, drives the reasoning gain</h3>
+        <p>
+          To separate the structured pipeline from GRPO itself, a free-form chain-of-thought is trained with the
+          same GRPO setup, budget and data. It barely improves KRIS over no reasoning and lowers GEdit. Structure lifts
+          KRIS to 73.4 under identical training, but applied uniformly it still overthinks direct edits; adaptivity
+          recovers GEdit to 7.00 while keeping KRIS at 73.2, the only configuration that is strong on both.
+        </p>
+        <div class="table-wrap narrow">
+          <p class="table-cap" id="tcap-4">All reasoning variants use the same GRPO setup, budget and data.</p>
+          <div class="table-scroll">
+          <table class="results" aria-describedby="tcap-4">
+            <thead><tr><th class="left">Reasoning</th><th>Adaptive</th><th>Structured</th><th>GEdit</th><th>KRIS</th></tr></thead>
+            <tbody>
+              <tr><td class="left">None (Flow-GRPO only)</td><td>&ndash;</td><td>&ndash;</td><td>6.94</td><td>60.1</td></tr>
+              <tr><td class="left">Free-form CoT</td><td class="no" aria-label="no">&#10007;</td><td class="no" aria-label="no">&#10007;</td><td>6.25</td><td>62.8</td></tr>
+              <tr><td class="left">Structured, always Heavy</td><td class="no" aria-label="no">&#10007;</td><td class="yes" aria-label="yes">&#10003;</td><td>6.37</td><td><b>73.4</b></td></tr>
+              <tr class="ours-row"><td class="left">PRISM</td><td class="yes" aria-label="yes">&#10003;</td><td class="yes" aria-label="yes">&#10003;</td><td><b>7.00</b></td><td>73.2</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <h3 class="sub" id="results-complexity">Complexity steering and action quality</h3>
+        <p>
+          Complexity is ordinal, so agreement is measured with quadratic-weighted Cohen's &kappa; (QWK). Three
+          annotators each rated the same 1,000 samples (200 per benchmark) on a 1&ndash;10 scale, with hidden repeats
+          to measure test-retest consistency.
+        </p>
+        <div class="findings">
+          <div class="finding">
+            <div class="finding-tag">Humans</div>
+            <h3>A low ceiling</h3>
+            <span class="stat">0.777 <small>QWK test-retest, vs 0.458 between annotators</small></span>
+            <p>Annotators agree with themselves (test-retest) far more than with each other, so the median of three is
+              used as the consensus label.</p>
+          </div>
+          <div class="finding">
+            <div class="finding-tag">Teacher</div>
+            <h3>InternVL3.5-241B beats <span class="nowrap">GPT-5</span></h3>
+            <span class="stat">0.608 <small>QWK with the human consensus, vs 0.521 for GPT-5</small></span>
+            <p>Against the consensus, InternVL3.5-241B prompted for a score agrees better than GPT-5 (paired bootstrap
+              <span class="math">\(p{&lt;}0.001\)</span>), reaching 78% of the human test-retest ceiling.</p>
+          </div>
+          <div class="finding">
+            <div class="finding-tag">Policy</div>
+            <h3>SFT warm-start matters</h3>
+            <span class="stat">0.605 <small>QWK with the teacher, vs 0.569 for GRPO only</small></span>
+            <p>Against the teacher on all five benchmarks (<span class="math">\(n{=}3{,}870\)</span>), an SFT-trained
+              Stage&nbsp;1 beats GRPO-only training, and later GRPO of the other stages does not erode it.</p>
+          </div>
+        </div>
+        <p style="margin-top: 22px;">
+          <strong>Actions are rarely redundant or contradictory.</strong> Using GPT-5.2 to flag problematic action sets
+          across all five benchmarks, only 7% of samples contain a redundant action and 4% a contradictory one.
+          Redundancy arises mostly on direct benchmarks such as GEdit, when a light sample receives a separate
+          &ldquo;keep unchanged&rdquo; action; contradictions concentrate on PICABench, where the model misses a
+          physical consequence, and coincide with genuinely hard physical edits.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================== QUALITATIVE ============================== -->
+    <section class="band" id="qualitative">
+      <div class="wrap">
+        <h2>Qualitative Results</h2>
+        <p>
+          On edits with physical or visual consequences, the tailored actions spell out what BAGEL-Think leaves
+          implicit: what is hidden behind a removed object, how mud displaces around a foot, how a pillow rests once
+          it is released. Click any figure to enlarge it.
+        </p>
+        <figure class="wide pop">
+          <img class="zoomable" src="static/images/qualitative.jpg" width="2400" height="1088" loading="lazy"
+               alt="Three edits compared: removing a magnifying glass from a portrait, changing the water around a foot to mud, and lowering a woman's arms from a pillow. For each, the BAGEL-Think result, PRISM's three actions and PRISM's result.">
+          <figcaption><strong><span class="ours">PRISM</span> against BAGEL-Think.</strong> For each input, the
+            BAGEL-Think edit, the three tailored actions <span class="ours">PRISM</span> generates, and its
+            edit.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============================== BIBTEX ============================== -->
+    <section class="band" id="bibtex">
+      <div class="wrap">
+        <h2>BibTeX</h2>
+        <!-- TODO: fill in the authors, and the venue once accepted. -->
+        <div class="bib">
+          <button class="copy" type="button" id="copy-bib">Copy</button>
+<pre><code id="bib-text">@article{prism2026dontoverthink,
+  title   = {Don't Overthink: When Reasoning Backfires in
+             Image Editing and How to Fix It},
+  author  = {Anonymous Authors},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="wrap">
+        <p>&copy; 2026 the authors. <a href="#top">Back to top</a></p>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<!-- Mobile table-of-contents toggle -->
+<button class="toc-toggle" id="toc-toggle" type="button" aria-controls="toc" aria-expanded="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  Contents
+</button>
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Enlarged figure">
+  <button class="lightbox-close" type="button" aria-label="Close">&times;</button>
+  <img alt="">
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<script defer src="static/js/main.js"></script>
+</body>
+</html>
